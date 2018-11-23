@@ -1,0 +1,194 @@
+---
+title: "linearReg_hw7"
+author: "Eric Yuan"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+data = read.table('CH08PR06.txt')
+colnames(data) <- c('y', 'x')
+X <- data$x
+Y <- data$y
+x1 <- X - mean(X)
+x11 <- x1**2
+lm1 <- lm(Y~x1+x11)
+lm1
+```
+
+```{r}
+SSR <- sum((lm1$fitted.values-mean(Y))^2)
+SST <- sum((Y-mean(Y))^2)
+R.square <- SSR/SST
+R.square
+
+
+p.value <- 1-pf(52.633,2,24)
+p.value
+
+
+g <- 3
+B <- qt(1-0.01/(2*g),24)
+X.Mat <- t(rbind(1,x1,x11))
+SSE <- SST - SSR
+MSE <- SSE/24
+X_10 <- matrix(c(1,10-mean(X),(10-mean(X))^2),nrow=3)
+Y_10 <- coef(L)%*%X_10
+Sd.Y_10 <- sqrt(MSE*t(X_10)%*%solve(t(X.Mat)%*%X.Mat)%*%X_10)
+X_15 <- matrix(c(1,15-mean(X),(15-mean(X))^2),nrow=3)
+Y_15 <- coef(L)%*%X_15
+Sd.Y_15 <- sqrt(MSE*t(X_15)%*%solve(t(X.Mat)%*%X.Mat)%*%X_15)
+X_20 <- matrix(c(1,20-mean(X),(20-mean(X))^2),nrow=3)
+Y_20 <- coef(L)%*%X_20
+Sd.Y_20 <- sqrt(MSE*t(X_20)%*%solve(t(X.Mat)%*%X.Mat)%*%X_20)
+
+```
+```{r}
+y<-data[,1]
+x<-data[,2]-mean(data[,2])
+
+xx<-x^2
+g <- 3
+B <- qt(1-0.01/(2*g),24)
+x_mat <- t(rbind(1,x,xx))
+mse=sum((lm1$residuals)^2)/24
+m=mean(data[,2])
+
+x10<-matrix(c(1,10-m,(10-m)^2),nrow=3)
+y10 <- coef(lm1)%*%x10
+sd10 <- sqrt(mse*t(x10)%*%solve(t(x_mat)%*%x_mat)%*%x10)
+cat('CI for X=10: ', c(y10-B*sd10,y10+B*sd10))
+
+x15<-matrix(c(1,15-m,(15-m)^2),nrow=3)
+y15 <- coef(lm1)%*%x15
+sd15 <- sqrt(mse*t(x15)%*%solve(t(x_mat)%*%x_mat)%*%x15)
+cat('CI for X=10: ', c(y15-B*sd15,y15+B*sd15))
+
+x20<-matrix(c(1,20-m,(20-m)^2),nrow=3)
+y20 <- coef(lm1)%*%x20
+sd20 <- sqrt(mse*t(x20)%*%solve(t(x_mat)%*%x_mat)%*%x20)
+cat('CI for X=10: ', c(y20-B*sd20,y20+B*sd20))
+```
+
+```{r}
+t <- qt(1-0.01/2,24)
+sd_pred <- sqrt(mse*(1+t(x15)%*%solve(t(x_mat)%*%x_mat)%*%x15))
+c(y15-t*sd_pred,y15+sd_pred)
+```
+```{r}
+anova(lm(y~x))
+F=(491.53-238.54)/mse
+F>qf(0.99,1,24)
+```
+```{r}
+b0 <- lm1$coefficients[1]
+b1 <- lm1$coefficients[2]
+b11 <- lm1$coefficients[3]
+c(b0-b1*m+b11*m^2, b1-2*m*b11,b11)
+```
+```{r}
+data <- read.table("APPENC03.txt", stringsAsFactors=F)
+names(data) <- c("id","y","f1","f2","f3","f4","Month","year")
+data$i1999 <- 1*(data$year == 1999)
+data$i2001 <- 1*(data$year == 2001)
+data$i2002 <- 1*(data$year == 2002)
+
+lm2 = lm(y~f1+f2+f3+f4+i1999+i2001+i2002,data=data)
+lm2_sum<-summary(fit)
+lm2_sum
+
+plot(fitted(lm2), lm2$residuals, xlab="Fitted Values",
+     ylab = "Residuals",
+     main = "Residuals against Fitted Values")
+abline(h=0,col="red")
+```
+
+```{r}
+relm2 <- lm(y~f1+f2+I(f1^2)+I(f2^2)+f1*f2+f3+f4+i1999+i2001+i2002, data=data)
+summary(relm2)
+
+relm21 <- lm(y~f1+f3+f4, data=data)
+summary(relm21)
+```
+
+```{r}
+data<-read.table("APPENC04.txt", stringsAsFactors=F)
+names(data) <- c("id","y","x1","x2","year")
+data$i1996 <- 1*(data$year == 1996)
+data$i1997 <- 1*(data$year == 1997)
+data$i1998 <- 1*(data$year == 1998)
+data$i1999 <- 1*(data$year == 1999)
+
+fit=lm(y~x1+x2+i1996+i1997+i1998+i1999,data=data)
+summary(fit)
+
+plot(fitted(fit),fit$residuals,xlab="y hat",
+      ylab="residual",
+      main="residual against y hat")
+abline(h=0,col="red")
+
+refit=lm(y~x1+x2+I(x1^2)+I(x2^2)+x1*x2+i1996+i1997+i1998+i1999summary(refit))
+summary(refit)
+
+plot(fitted(refit),refit$residuals,xlab="y hat",
+      ylab="residual",
+      main="residual against y hat")
+abline(h=0,col="red")
+
+refit2=lm(y~x1+x2+I(x1^2), data = data)
+summary(refit2)
+```
+
+```{r}
+data <- read.table('CH06PR05.txt')
+colnames(data) <- c('y', 'x1', 'x2')
+Y = data$y
+X1 = data$x1
+X2 = data$x2
+L <- lm(Y~X1+X2)
+e <- L$residuals
+SSE <- sum((e)^2)
+n <- length(Y)
+X.Mat <- t(rbind(1,X1,X2))
+H <- X.Mat%*%solve(t(X.Mat)%*%X.Mat)%*%t(X.Mat)
+H.diag <- diag(H)
+t <- e*sqrt((n-3-1)/(SSE*(1-H.diag)-e^2))
+df <- data.frame(i=1:n,e=e,t=t)
+t.star <- qt(1-0.1/(2*n),n-3-1)
+outlier.place <- c()
+for(i in 1:n)
+{
+if(abs(t[i])>t.star)
+{outlier.place <- c(outlier.place,i)}
+}
+df
+
+
+X.Mat <- t(rbind(1,X1,X2))
+H <- X.Mat%*%solve(t(X.Mat)%*%X.Mat)%*%t(X.Mat)
+H.diag <- diag(H)
+H.diag
+
+Critical.Point <- 2*3/n
+Outlier.X <- c()
+for(i in 1:n){ if(H.diag[i]>Critical.Point) {Outlier.X <- c(Outlier.X,i)} }
+Outlier.X
+
+plot(X1,X2,main = "X2 against X1")
+points(c(10),c(3),col="blue")
+
+MSE <- SSE/(n-3)
+D <- e^2/(3*MSE)*H.diag/(1-H.diag)^2
+df <- data.frame(i=1:n,D=D,Percentile=pf(D,3,n-3))
+df
+
+plot(1:n,D,xlab="Case Index No.",ylab="Cook's Distance D",main="Index Influence plot", type = 'line')
+```
+
+```{r}
+df[df$Percentile>0.1,1]
+```
